@@ -77,17 +77,12 @@ module.exports = ({ strapi }) => ({
 
       let excelData = await this.restructureData(response, excel?.config[uid]);
 
-      // Create a new workbook and add a worksheet
       const workbook = new ExcelJS.Workbook();
-      const worksheet = workbook.addWorksheet("Sheet 1");
-
-      // Extract column headers dynamically from the data
+      const worksheet = workbook.addWorksheet("Test");
       let headers = [
         ...excel?.config[uid]?.columns,
         ...Object.keys(excel?.config[uid]?.relation),
       ];
-
-      // // Transform the original headers to the desired format
       let headerRestructure = [];
       headers?.forEach((element) => {
         const formattedHeader = element
@@ -105,26 +100,17 @@ module.exports = ({ strapi }) => ({
         width: 20,
       }));
 
-      // Define the dropdown list options for the Gender column
-
-      // Add data to the worksheet
+      // Add rows
+      let cc = 0;
       excelData?.forEach((row) => {
-        // Excel will provide a dropdown with these values.
-        worksheet.addRow(row);
+        worksheet.addRow(row); // Agrega la fila al Excel
       });
 
-      // Enable text wrapping for all columns
-      worksheet.columns.forEach((column) => {
-        column.alignment = { wrapText: true };
-      });
-
-      // Freeze the first row
-      worksheet.views = [
-        { state: "frozen", xSplit: 0, ySplit: 1, topLeftCell: "A" },
-      ];
-
-      // Write the workbook to a file
+      // Write to buffer
       const buffer = await workbook.xlsx.writeBuffer();
+      ctx.set("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+      ctx.set("Content-Disposition", "attachment; filename=test.xlsx");
+      ctx.body = buffer;
 
       return buffer;
     } catch (error) {
